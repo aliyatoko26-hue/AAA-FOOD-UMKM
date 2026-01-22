@@ -530,7 +530,7 @@ function renderProducts() {
       : `<span class="px-2 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">Toko tutup</span>`;
 
     const pinned = p.pinned
-      ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">SEMAT</span>`
+      ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Best Seller</span>`
       : ``;
 
     const photo = p.photo
@@ -1086,7 +1086,7 @@ renderAdminStores = function () {
           <span class="px-2 py-1 rounded-full text-xs font-bold ${s.open ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}">
             ${s.open ? "BUKA" : "TUTUP"}
           </span>
-          ${s.pinned ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">SEMAT</span>` : ``}
+          ${s.pinned ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Best Seller</span>` : ``}
         </div>
       </div>
 
@@ -1096,7 +1096,7 @@ renderAdminStores = function () {
           ${s.open ? "Tutup" : "Buka"}
         </button>
         <button class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold" data-act="togglePin">
-          ${s.pinned ? "Lepas Semat" : "Sematkan"}
+          ${s.pinned ? "Lepas Best Seller" : "Best Sellerkan"}
         </button>
         <button class="px-3 py-2 rounded-xl border border-red-200 hover:bg-red-50 text-red-700 font-semibold" data-act="del">
           Hapus
@@ -1122,7 +1122,7 @@ renderAdminStores = function () {
         await updateDoc(doc(db, "stores", s.id), { pinned: !s.pinned });
       } catch (e) {
         console.error(e);
-        alert("Gagal ubah semat.");
+        alert("Gagal ubah Best Seller.");
       }
     };
 
@@ -1195,7 +1195,7 @@ renderAdminProducts = function () {
           <div class="text-sm text-slate-700 mt-1">Rp ${fmtRupiah(p.price)}</div>
         </div>
         <div class="flex flex-col items-end gap-1">
-          ${p.pinned ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">SEMAT</span>` : ``}
+          ${p.pinned ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Best Seller</span>` : ``}
         </div>
       </div>
 
@@ -1204,7 +1204,7 @@ renderAdminProducts = function () {
       <div class="mt-3 flex flex-wrap gap-2">
         <button class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold" data-act="edit">Edit</button>
         <button class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold" data-act="pin">
-          ${p.pinned ? "Lepas Semat" : "Sematkan"}
+          ${p.pinned ? "Lepas Best Seller" : "Best Sellerkan"}
         </button>
         <button class="px-3 py-2 rounded-xl border border-red-200 hover:bg-red-50 text-red-700 font-semibold" data-act="del">
           Hapus
@@ -1224,7 +1224,7 @@ renderAdminProducts = function () {
         await updateDoc(doc(db, "products", p.id), { pinned: !p.pinned });
       } catch (e) {
         console.error(e);
-        alert("Gagal ubah semat produk.");
+        alert("Gagal ubah Best Seller produk.");
       }
     };
 
@@ -1806,3 +1806,4 @@ renderAll = function () {
 /* =========================
    END BAGIAN 3/3
    ========================= */
+
