@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AAA-FOOD-UMKM</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS External -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <div class="min-h-screen flex flex-col items-center">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 w-full">
+      <div class="w-full max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
+        <button id="btnGoHome" class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white grid place-items-center font-extrabold text-sm">AAA</div>
+          <div class="text-left">
+            <div class="font-extrabold leading-tight text-sm">FOOD UMKM</div>
+            <div class="text-[11px] text-slate-500 leading-tight">Pesanan via WhatsApp Admin</div>
+          </div>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button id="btnOpenCart" class="relative px-3 py-2 rounded-xl text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50">
+            🛒 <span class="hidden sm:inline">Keranjang</span>
+            <span id="cartBadge" class="hidden-soft absolute -top-2 -right-2 text-xs font-extrabold bg-slate-900 text-white rounded-full px-2 py-1">0</span>
+          </button>
+
+          <button id="btnOpenAdminLogin" class="px-3 py-2 rounded-xl text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800">
+            Admin
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="w-full max-w-6xl mx-auto px-4 py-5">
+      <!-- HERO -->
+      <section class="rounded-3xl bg-white border border-slate-200 p-4 md:p-5 text-center">
+        <h1 class="text-base md:text-lg font-extrabold">Mau makan apa hari ini?</h1>
+        <p class="text-sm text-slate-600 mt-1">
+          Pilih toko, pilih produk + varian, lalu checkout via WhatsApp.
+        </p>
+        <p class="text-sm text-slate-600 mt-1">
+          Ongkir Cerah 5Ribu - 10Ribu, hujan 8Ribu - 15Ribu
+        </p>
+
+        <div class="mt-3 max-w-xl mx-auto">
+          <input id="searchInput" type="text" placeholder="Cari produk..."
+            class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300" />
+        </div>
+
+        <div class="mt-3 flex flex-wrap gap-2 justify-center">
+          <button id="chipAll" class="chip px-3 py-2 rounded-full text-sm font-semibold bg-slate-900 text-white">Semua Produk</button>
+          <button id="chipPinned" class="chip px-3 py-2 rounded-full text-sm font-semibold bg-white border border-slate-200 hover:bg-slate-50">Produk Disematkan</button>
+          <button id="chipOpenOnly" class="chip px-3 py-2 rounded-full text-sm font-semibold bg-white border border-slate-200 hover:bg-slate-50">Toko Buka Saja</button>
+        </div>
+      </section>
+
+      <!-- TOKO -->
+      <section class="mt-5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button id="btnBackStore" class="hidden-soft px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold text-sm">
+              ← Kembali
+            </button>
+            <h2 class="text-sm md:text-base font-extrabold" id="storeTitle">Semua Toko</h2>
+          </div>
+          <div class="text-xs text-slate-500" id="storeCount"></div>
+        </div>
+
+        <div id="storeRow" class="mt-3 flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: thin;"></div>
+      </section>
+
+      <!-- PRODUK -->
+      <section class="mt-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-sm md:text-base font-extrabold" id="productTitle">Produk</h2>
+          <div class="text-xs text-slate-500" id="productCount"></div>
+        </div>
+
+        <div id="productGrid" class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-200 bg-white w-full">
+      <div class="w-full max-w-6xl mx-auto px-4 py-5 text-sm text-slate-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-center sm:text-left">
+        <div>© <span id="yearNow"></span> AAA-FOOD-UMKM</div>
+        <button id="btnFooterWA" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+          Chat Admin
+        </button>
+      </div>
+    </footer>
+
+    <!-- MODAL: ADMIN LOGIN -->
+    <div id="modalLogin" class="hidden-soft fixed inset-0 z-50 bg-black/40 p-4">
+      <div class="max-w-md mx-auto bg-white rounded-3xl border border-slate-200 overflow-hidden"
+           style="margin-top:min(10vh,40px); max-height:90vh;">
+        <div class="p-4 border-b border-slate-200 flex items-start justify-between">
+          <div>
+            <div class="text-base font-extrabold">Login Admin</div>
+            <div class="text-sm text-slate-500">Kelola toko & produk</div>
+          </div>
+          <button id="btnCloseLogin" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Tutup</button>
+        </div>
+
+        <div class="p-4 space-y-3 overflow-auto" style="max-height: calc(90vh - 70px);">
+          <div>
+            <label class="text-sm font-semibold">Email Admin</label>
+<input id="loginUser" type="email" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" placeholder="admin@umkm.com" />
+          </div>
+          <div>
+            <label class="text-sm font-semibold">Password</label>
+            <input id="loginPass" type="password" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" placeholder="" />
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-xs text-slate-500">login hanya admin</div>
+            <button id="btnDoLogin" class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+              Masuk
+            </button>
+          </div>
+          <div id="loginError" class="hidden-soft text-sm text-red-600 font-semibold"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="hidden-soft fixed inset-0 z-50 bg-slate-50">
+      <div class="h-full flex flex-col">
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+            <div>
+              <div class="font-extrabold">Admin</div>
+              <div class="text-xs text-slate-500">Kelola toko, produk, WA admin</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnCloseAdmin" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Kembali</button>
+              <button id="btnLogout" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800">Logout</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="flex-1 overflow-auto">
+          <div class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+            <!-- SETTINGS -->
+            <section class="bg-white rounded-3xl border border-slate-200 p-5">
+              <h3 class="font-extrabold">Pengaturan</h3>
+              <p class="text-sm text-slate-500 mt-1">Semua pesanan masuk ke nomor ini.</p>
+
+              <div class="mt-4 space-y-3">
+                <div>
+                  <label class="text-sm font-semibold">Nomor WhatsApp Admin</label>
+                  <input id="adminPhone" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" placeholder="contoh: 6281234567890" />
+                  <div class="text-xs text-slate-500 mt-1">Format: 62xxxx (tanpa +, tanpa spasi).</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-sm font-semibold">Username Admin</label>
+                    <input id="adminUser" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+                  </div>
+                  <div>
+                    <label class="text-sm font-semibold">Password Admin</label>
+                    <input id="adminPass" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+                  </div>
+                </div>
+
+                <button id="btnSaveSettings" class="w-full px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+                  Simpan Pengaturan
+                </button>
+                <div id="settingsSaved" class="hidden-soft text-sm text-emerald-600 font-semibold">Tersimpan ✅</div>
+              </div>
+            </section>
+
+            <!-- STORES -->
+            <section class="bg-white rounded-3xl border border-slate-200 overflow-hidden lg:col-span-2">
+              <!-- header + search -->
+              <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sticky top-0 bg-white z-10">
+                <div>
+                  <h3 class="font-extrabold">Kelola Toko</h3>
+                  <p class="text-sm text-slate-500 mt-1">Tambah, buka/tutup, semat, foto.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <input id="adminStoreSearch" type="text"
+                         class="px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 w-full sm:w-72"
+                         placeholder="Cari toko... (nama/kategori/alamat)" />
+                  <button id="btnNewStore" class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+                    + Toko
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-5 overflow-auto" style="max-height: 55vh;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="adminStoreList"></div>
+              </div>
+            </section>
+
+            <!-- PRODUCTS -->
+            <section class="bg-white rounded-3xl border border-slate-200 overflow-hidden lg:col-span-3">
+              <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0 bg-white z-10">
+                <div>
+                  <h3 class="font-extrabold">Kelola Produk</h3>
+                  <p class="text-sm text-slate-500 mt-1">Produk, varian, foto, semat.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <input id="adminProductSearch" type="text"
+                         class="px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 w-full sm:w-72"
+                         placeholder="Cari produk... (nama/deskripsi)" />
+
+                  <select id="adminStoreFilter" class="px-4 py-3 rounded-2xl border border-slate-200 bg-white">
+                    <option value="all">Semua Toko</option>
+                  </select>
+
+                  <button id="btnNewProduct" class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+                    + Produk
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-5 overflow-auto" style="max-height: 55vh;">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="adminProductList"></div>
+              </div>
+            </section>
+
+            <!-- BULK CSV -->
+            <section class="bg-white rounded-3xl border border-slate-200 overflow-hidden lg:col-span-3">
+              <div class="p-5 border-b border-slate-200">
+                <h3 class="font-extrabold">Input Masal Produk (CSV)</h3>
+                <p class="text-sm text-slate-500 mt-1">
+                  Format: <b>store_id,nama,harga,deskripsi,pinned(0/1),varian_opsional</b>
+                </p>
+                <div class="mt-2 text-xs text-slate-500">
+                  Varian opsional format:
+                  <code class="bg-slate-100 px-2 py-1 rounded-lg">Ayam saja|25000; + Nasi|32000</code>
+                </div>
+              </div>
+
+              <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="md:col-span-2">
+                  <label class="text-sm font-semibold">Tempel CSV</label>
+                  <textarea id="bulkCsv" rows="7"
+                    class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    placeholder="store_1,Ayam Geprek,25000,Pedas mantap,1,Ayam saja|25000; + Nasi|32000
+store_2,Pempek Lenjer,20000,Frozen mudah goreng,0,"></textarea>
+                </div>
+
+                <div class="space-y-2">
+                  <button id="btnImportCsv" class="w-full px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+                    Import CSV
+                  </button>
+
+                  <button id="btnExportData" class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold">
+                    Export Data (JSON)
+                  </button>
+
+                  <button id="btnResetDemo" class="w-full px-4 py-3 rounded-2xl border border-red-200 bg-white hover:bg-red-50 text-red-700 font-semibold">
+                    Reset Demo
+                  </button>
+
+                  <div id="importMsg" class="text-sm font-semibold"></div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                    <div class="font-bold mb-1">Tips:</div>
+                    <ul class="list-disc pl-5 space-y-1">
+                      <li><b>store_id</b> harus ada (misal: store_1)</li>
+                      <li>Harga angka saja</li>
+                      <li>pinned isi 1 atau 0</li>
+                      <li>Varian dipisah <b>;</b>, format <b>Nama|Harga</b></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: STORE FORM -->
+    <div id="modalStore" class="hidden-soft fixed inset-0 z-50 bg-black/40 p-4">
+      <div class="max-w-lg mx-auto bg-white rounded-3xl border border-slate-200 overflow-hidden"
+           style="margin-top:min(10vh,40px); max-height:90vh;">
+        <div class="p-5 border-b border-slate-200 flex items-start justify-between">
+          <div>
+            <div class="text-lg font-extrabold" id="storeFormTitle">Toko</div>
+            <div class="text-sm text-slate-500">Isi data toko.</div>
+          </div>
+          <button id="btnCloseStoreModal" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Tutup</button>
+        </div>
+
+        <div class="p-5 overflow-auto" style="max-height: calc(90vh - 90px);">
+          <div class="space-y-3">
+            <input type="hidden" id="storeId" />
+
+            <div>
+              <label class="text-sm font-semibold">Nama Toko</label>
+              <input id="storeName" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Kategori</label>
+              <input id="storeCategory" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Alamat Singkat</label>
+              <input id="storeAddress" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center gap-2 px-3 py-3 rounded-2xl border border-slate-200 bg-white cursor-pointer">
+                <input id="storeOpen" type="checkbox" class="w-5 h-5" />
+                <span class="font-semibold">Toko Buka</span>
+              </label>
+              <label class="flex items-center gap-2 px-3 py-3 rounded-2xl border border-slate-200 bg-white cursor-pointer">
+                <input id="storePinned" type="checkbox" class="w-5 h-5" />
+                <span class="font-semibold">Sematkan</span>
+              </label>
+            </div>
+
+            <!-- FOTO TOKO VIA LINK (GOOGLE DRIVE / URL PUBLIC) -->
+            <div>
+              <label class="text-sm font-semibold">Link Foto Toko (opsional)</label>
+              <input id="storePhotoUrl"
+                     class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50"
+                     placeholder="Tempel link foto Google Drive / URL gambar" />
+              <div class="text-xs text-slate-500 mt-1">
+                Drive (disarankan): pakai link publik, contoh:
+                <span class="break-all">https://drive.google.com/uc?export=view&id=FILE_ID</span>
+              </div>
+            </div>
+
+            <button id="btnSaveStore" class="w-full px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+              Simpan Toko
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PRODUCT FORM -->
+    <div id="modalProduct" class="hidden-soft fixed inset-0 z-50 bg-black/40 p-4">
+      <div class="max-w-lg mx-auto bg-white rounded-3xl border border-slate-200 overflow-hidden"
+           style="margin-top:min(10vh,40px); max-height:90vh;">
+        <div class="p-5 border-b border-slate-200 flex items-start justify-between">
+          <div>
+            <div class="text-lg font-extrabold" id="productFormTitle">Produk</div>
+            <div class="text-sm text-slate-500">Isi data produk.</div>
+          </div>
+          <button id="btnCloseProductModal" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Tutup</button>
+        </div>
+
+        <div class="p-5 overflow-auto" style="max-height: calc(90vh - 90px);">
+          <div class="space-y-3">
+            <input type="hidden" id="productId" />
+
+            <div>
+              <label class="text-sm font-semibold">Pilih Toko</label>
+              <select id="productStoreId" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white"></select>
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Nama Produk</label>
+              <input id="productName" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-sm font-semibold">Harga Default (Rp)</label>
+                <input id="productPrice" type="number" min="0" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50" />
+              </div>
+              <label class="flex items-center gap-2 px-3 py-3 rounded-2xl border border-slate-200 bg-white cursor-pointer mt-6">
+                <input id="productPinned" type="checkbox" class="w-5 h-5" />
+                <span class="font-semibold">Sematkan</span>
+              </label>
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Deskripsi</label>
+              <textarea id="productDesc" rows="3" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50"></textarea>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div class="font-extrabold">Varian Produk (opsional)</div>
+              <div class="text-sm text-slate-600 mt-1">1 baris = 1 varian. Format: <b>Nama Varian|Harga</b></div>
+              <textarea id="productVariants" rows="5"
+                class="mt-2 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white"
+                placeholder="Contoh:
+Ayam saja|25000
++ Nasi|32000"></textarea>
+              <div class="text-xs text-slate-500 mt-2">
+                Kalau dikosongkan, pembeli otomatis pakai <b>Harga Default</b>.
+              </div>
+            </div>
+
+            <!-- FOTO PRODUK VIA LINK (GOOGLE DRIVE / URL PUBLIC) -->
+            <div>
+              <label class="text-sm font-semibold">Link Foto Produk (opsional)</label>
+              <input id="productPhotoUrl"
+                     class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50"
+                     placeholder="Tempel link foto Google Drive / URL gambar" />
+              <div class="text-xs text-slate-500 mt-1">
+                Drive (disarankan): <span class="break-all">https://drive.google.com/uc?export=view&id=FILE_ID</span>
+              </div>
+            </div>
+
+            <button id="btnSaveProduct" class="w-full px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800">
+              Simpan Produk
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CART -->
+    <div id="modalCart" class="hidden-soft fixed inset-0 z-50 bg-black/40 p-4">
+      <div class="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200 overflow-hidden"
+           style="margin-top: min(10vh, 40px); max-height: 90vh;">
+        <div class="p-5 border-b border-slate-200 flex items-start justify-between gap-2">
+          <div>
+            <div class="text-lg font-extrabold">Keranjang</div>
+            <div class="text-sm text-slate-500">Item banyak bisa di-scroll. Checkout tetap terlihat.</div>
+          </div>
+          <button id="btnCloseCart" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Tutup</button>
+        </div>
+
+        <div class="p-5 overflow-auto" style="max-height: calc(90vh - 270px);">
+          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+            <div class="font-extrabold">Data Pembeli</div>
+
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="text-sm font-semibold">Nama <span class="text-rose-600">*</span></label>
+                <input id="buyerName" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white" placeholder="Wajib" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold">No. HP (opsional)</label>
+                <input id="buyerPhone" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white" placeholder="Opsional" />
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <label class="text-sm font-semibold">Alamat <span class="text-rose-600">*</span></label>
+              <textarea id="buyerAddress" rows="2" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white" placeholder="Wajib"></textarea>
+            </div>
+
+            <div class="mt-2">
+              <label class="text-sm font-semibold">Catatan (opsional)</label>
+              <textarea id="buyerNote" rows="2" class="mt-1 w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white" placeholder="Opsional"></textarea>
+            </div>
+
+            <div id="buyerWarn" class="hidden-soft mt-2 text-sm font-semibold text-rose-700">
+              Isi Nama dan Alamat dulu ya.
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="font-extrabold">Daftar Pesanan</div>
+            <div id="cartList" class="mt-3 space-y-3"></div>
+          </div>
+        </div>
+
+        <div class="p-5 border-t border-slate-200 bg-white">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-sm text-slate-500">Total</div>
+              <div class="text-xl font-extrabold" id="cartTotal">Rp 0</div>
+            </div>
+
+            <div class="flex gap-2">
+              <button id="btnClearCart" class="px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold">
+                Kosongkan
+              </button>
+
+              <a id="btnCheckoutWA" href="#" target="_blank" rel="noopener"
+                 class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800 text-center">
+                Checkout WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS External -->
+    <script type="module" src="app.js"></script>
+
+
+  </div>
+</body>
+</html>
