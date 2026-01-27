@@ -3,8 +3,10 @@
    - Firestore realtime (onSnapshot)
    - Public UI (toko, produk, chip, search)
    - Cart + Buyer pakai localStorage
-   - Admin Auth (login/logout + buka panel) + Settings adminPhone
-   - ADMIN CRUD lengkap ada di BAGIAN 2 & 3 (akan menyusul)
+   - Animasi Add To Cart (fly to cart + badge bounce)
+   - Checkout WA tambah ONGKIR (dari settings)
+   - Admin Auth (login/logout + buka panel) + Settings (adminPhone + ongkirText)
+   - ADMIN CRUD lengkap ada di BAGIAN 2 & 3
    ========================================================= */
 
 /* =========================
@@ -120,9 +122,9 @@ ensureLocal();
 /* =========================
    LIVE CACHE (DARI FIRESTORE REALTIME)
    ========================= */
-let liveSettings = { adminPhone: "" }; // settings/main
-let liveStores = [];                   // stores
-let liveProducts = [];                 // products
+let liveSettings = { adminPhone: "", ongkirText: "" }; // settings/main
+let liveStores = [];                                   // stores
+let liveProducts = [];                                 // products
 
 /* =========================
    UI STATE
@@ -141,6 +143,27 @@ if ($("yearNow")) $("yearNow").textContent = new Date().getFullYear();
    ========================= */
 function getAdminPhone() {
   return String(liveSettings?.adminPhone || "").replace(/\D/g, "");
+}
+
+function getOngkirText() {
+  const t = (liveSettings?.ongkirText || "").trim();
+  // default kalau belum diisi
+  return t || `* Cuaca cerah: Rp 5.000 – Rp 10.000
+* Cuaca hujan: Rp 8.000 – Rp 15.000`;
+}
+
+function renderHeroOngkir() {
+  const el = $("heroOngkir");
+  if (!el) return;
+
+  // tampil di web (tanpa karakter "*", biar rapi)
+  const text = getOngkirText()
+    .split("\n")
+    .map(s => s.replace(/^\*\s?/, "").trim())
+    .filter(Boolean)
+    .join(" • ");
+
+  el.textContent = text ? `Ongkir: ${text}` : "";
 }
 
 function renderFooterWA() {
@@ -214,7 +237,80 @@ function cartKey(productId, variantId) {
   return `${productId}__${variantId || "default"}`;
 }
 
-function addToCart(productId, variantId) {
+/* =========================
+   ANIMASI ADD TO CART
+   - butuh CSS: .fly-dot, .cart-badge-bounce, .btn-pop
+   ========================= */
+function animateAddToCart(fromEl) {
+  const cartBtn = $("btnOpenCart");
+  const badge = $("cartBadge");
+  if (!fromEl || !cartBtn) return;
+
+  const a = fromEl.getBoundingClientRect();
+  const b = cartBtn.getBoundingClientRect();
+
+  const startX = a.left + a.width / 2;
+  const startY = a.top + a.height / 2;
+
+  const endX = b.left + b.width / 2;
+  const endY = b.top + b.height / 2;
+
+  // dot
+  const dot = document.createElement("div");
+  dot.className = "fly-dot";
+  dot.style.left = `${startX}px`;
+  dot.style.top = `${startY}px`;
+  document.body.appendChild(dot);
+
+  // pop tombol add
+  fromEl.classList.remove("btn-pop");
+  void fromEl.offsetWidth;
+  fromEl.classList.add("btn-pop");
+
+  // jalur melengkung (bezier)
+  const ctrlX = startX + (endX - startX) * 0.35;
+  const ctrlY = startY - 120; // naik dulu biar keliatan "terbang"
+
+  const duration = 650;
+  const t0 = performance.now();
+
+  function bezier(t, p0, p1, p2) {
+    // quadratic bezier
+    return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
+  }
+
+  function tick(now) {
+    const t = Math.min(1, (now - t0) / duration);
+
+    const x = bezier(t, startX, ctrlX, endX);
+    const y = bezier(t, startY, ctrlY, endY);
+
+    // scale mengecil di akhir + sedikit fade
+    const scale = 1 - t * 0.55;
+    dot.style.left = `${x}px`;
+    dot.style.top = `${y}px`;
+    dot.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    dot.style.opacity = String(1 - t * 0.55);
+
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      dot.remove();
+
+      // bounce badge biar mantap
+      if (badge) {
+        badge.classList.remove("cart-badge-bounce");
+        void badge.offsetWidth;
+        badge.classList.add("cart-badge-bounce");
+      }
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+
+function addToCart(productId, variantId, fromEl = null) {
   const cart = getCart();
   const key = cartKey(productId, variantId);
   const idx = cart.findIndex(x => x.key === key);
@@ -224,6 +320,8 @@ function addToCart(productId, variantId) {
 
   setCart(cart);
   updateCartBadge();
+
+  if (fromEl) animateAddToCart(fromEl);
 }
 
 function incCart(key) {
@@ -277,6 +375,10 @@ function validateBuyerRequired() {
   return true;
 }
 
+/* =========================
+   TEXT CHECKOUT WA (CART)
+   + Tambah ONGKIR dari settings
+   ========================= */
 function buildCheckoutText(cartItems, productsMap, storesMap) {
   const buyer = getBuyer();
   const lines = ["Halo Admin, saya mau checkout pesanan ini:", ""];
@@ -310,9 +412,21 @@ function buildCheckoutText(cartItems, productsMap, storesMap) {
 
   lines.push("");
   lines.push(`TOTAL: Rp ${fmtRupiah(total)}`);
+
+  // ✅ Tambah Ongkir (dari Pengaturan)
+  const ongkir = (getOngkirText() || "").trim();
+  if (ongkir) {
+    lines.push("");
+    lines.push("== ONGKIR ==");
+    ongkir.split("\n").forEach(l => lines.push(l));
+  }
+
   return lines.join("\n");
 }
 
+/* =========================
+   RENDER CART MODAL
+   ========================= */
 function renderCart() {
   bindBuyerInputsOnce();
 
@@ -380,7 +494,7 @@ function renderCart() {
 
   $("cartTotal").textContent = `Rp ${fmtRupiah(total)}`;
 
-  // href cadangan
+  // href cadangan (kalau user klik tanpa event)
   const phone = getAdminPhone();
   $("btnCheckoutWA").href = phone ? waLink(phone, buildCheckoutText(cart, productsMap, storesMap)) : "#";
 }
@@ -438,7 +552,7 @@ function renderStoreRow() {
     `;
 
     btn.onclick = () => {
-      // kalau sudah pilih toko, jangan ganti biar sesuai request kamu
+      // kalau sudah pilih toko, jangan ganti
       if (!state.activeStoreId) {
         state.activeStoreId = store.id;
         renderStoreRow();
@@ -490,7 +604,7 @@ function renderProducts() {
 
   let list = [...products];
 
-  // filter by store (INI YANG BIKIN "klik toko -> hanya produk toko itu")
+  // filter by store
   if (state.activeStoreId) list = list.filter(p => p.storeId === state.activeStoreId);
 
   if (state.chip === "pinned") list = list.filter(p => p.pinned === true);
@@ -635,7 +749,7 @@ function renderProducts() {
     btnAdd.onclick = () => {
       if (!isOpen) return;
       const vId = getSelectedVariantId();
-      addToCart(p.id, vId);
+      addToCart(p.id, vId, btnAdd); // ✅ animasi
     };
 
     btnWa.onclick = () => {
@@ -659,7 +773,6 @@ function renderProducts() {
         "Catatan (opsional):",
       ].join("\n");
 
-      // popup safe
       const url = waLink(phone, text);
       const w = window.open(url, "_blank", "noopener,noreferrer");
       if (!w) window.location.href = url;
@@ -676,6 +789,7 @@ function renderAll() {
   renderStoreRow();
   renderProducts();
   renderFooterWA();
+  renderHeroOngkir();
   updateCartBadge();
 }
 
@@ -725,7 +839,6 @@ if ($("btnCheckoutWA")) {
     const text = buildCheckoutText(cart, productsMap, storesMap);
     const url = waLink(phone, text);
 
-    // popup safe
     const w = window.open(url, "_blank", "noopener,noreferrer");
     if (!w) window.location.href = url;
 
@@ -783,8 +896,9 @@ function closeLogin() {
 function openAdminPanel() {
   $("adminPanel")?.classList.remove("hidden-soft");
 
-  // isi phone dari firestore settings
+  // isi phone + ongkir dari firestore settings
   if ($("adminPhone")) $("adminPhone").value = liveSettings?.adminPhone || "";
+  if ($("ongkirText")) $("ongkirText").value = liveSettings?.ongkirText || "";
 
   // fungsi detail ada Bagian 2
   syncAdminStoreSelects();
@@ -856,15 +970,21 @@ onAuthStateChanged(auth, (user) => {
 });
 
 /* =========================
-   SAVE SETTINGS (adminPhone) -> settings/main
+   SAVE SETTINGS -> settings/main
+   adminPhone + ongkirText
    ========================= */
 if ($("btnSaveSettings")) {
   $("btnSaveSettings").onclick = async () => {
     const adminPhone = ($("adminPhone")?.value || "").replace(/\D/g, "");
+    const ongkirText = ($("ongkirText")?.value || "").trim();
+
     try {
-      await setDoc(doc(db, "settings", "main"), { adminPhone }, { merge: true });
+      await setDoc(doc(db, "settings", "main"), { adminPhone, ongkirText }, { merge: true });
       $("settingsSaved")?.classList.remove("hidden-soft");
       setTimeout(() => $("settingsSaved")?.classList.add("hidden-soft"), 1200);
+
+      renderHeroOngkir();
+      renderCart();
     } catch (e) {
       console.error(e);
       alert("Gagal simpan settings. Cek Firestore Rules (write butuh login).");
@@ -892,6 +1012,7 @@ function startRealtime() {
   onSnapshot(doc(db, "settings", "main"), (snap) => {
     if (snap.exists()) liveSettings = snap.data();
     renderFooterWA();
+    renderHeroOngkir();
     renderCart();
   });
 
@@ -1069,7 +1190,7 @@ renderAdminStores = function () {
     const card = document.createElement("div");
     card.className = "rounded-3xl border border-slate-200 p-4 bg-white";
 
-    // ✅ penting: simpan storeId ke dataset biar Bagian 3 gampang hapus
+    // ✅ simpan storeId untuk Bagian 3 (hapus cascade)
     card.dataset.storeId = s.id;
 
     card.innerHTML = `
@@ -1183,7 +1304,7 @@ renderAdminProducts = function () {
     const card = document.createElement("div");
     card.className = "rounded-3xl border border-slate-200 p-4 bg-white";
 
-    // ✅ penting: simpan productId ke dataset biar Bagian 3 gampang hapus
+    // ✅ simpan productId untuk Bagian 3 (hapus + clean cart)
     card.dataset.productId = p.id;
 
     card.innerHTML = `
@@ -1719,7 +1840,7 @@ async function clearCollection(collName) {
 }
 
 // default seed (minimal) -> boleh kamu ganti
-const defaultSettings = { adminPhone: "" };
+const defaultSettings = { adminPhone: "", ongkirText: "" };
 const defaultStores = [
   { id: "store_1", name: "Toko Contoh 1", category: "Makanan", address: "Alamat contoh", open: true, pinned: true, photo: "" },
   { id: "store_2", name: "Toko Contoh 2", category: "Minuman", address: "Alamat contoh", open: true, pinned: false, photo: "" },
@@ -1804,7 +1925,5 @@ renderAll = function () {
 };
 
 /* =========================
-   END BAGIAN 3/3
+   END BAGIAN 3/3 (SELESAI)
    ========================= */
-
-
