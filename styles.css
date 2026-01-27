@@ -1,33 +1,39 @@
 /* =========================================================
-   GLOBAL
+   AAA-FOOD-UMKM - styles.css (FULL)
+   - Global font
+   - Utility: hidden-soft, line-clamp
+   - UX small tweaks
+   - Animasi add-to-cart (fly dot + badge bounce + button pop)
    ========================================================= */
+
+/* =========================
+   GLOBAL
+   ========================= */
 body {
-  font-family: "Plus Jakarta Sans", system-ui, -apple-system,
-    Segoe UI, Roboto, Arial, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* =========================================================
-   CARD HOVER EFFECT
-   ========================================================= */
+/* =========================
+   CARD HOVER EFFECT (optional)
+   ========================= */
 .card-hover {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* =========================================================
+/* =========================
    HIDDEN SOFT (dipakai banyak modal & badge)
-   ========================================================= */
+   ========================= */
 .hidden-soft {
   display: none;
 }
 
-/* =========================================================
+/* =========================
    LINE CLAMP (DESKRIPSI PRODUK)
-   ========================================================= */
+   ========================= */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -35,16 +41,24 @@ body {
   overflow: hidden;
 }
 
-/* =========================================================
+/* fallback kalau browser tidak support line-clamp */
+@supports not (-webkit-line-clamp: 2) {
+  .line-clamp-2 {
+    max-height: 2.8em;
+    overflow: hidden;
+  }
+}
+
+/* =========================
    FILE INPUT (HIDE DEFAULT BUTTON)
-   ========================================================= */
+   ========================= */
 input[type="file"]::-webkit-file-upload-button {
   visibility: hidden;
 }
 
-/* =========================================================
+/* =========================
    OPTIONAL: PERBAIKAN KECIL UX
-   ========================================================= */
+   ========================= */
 
 /* biar klik terasa lebih enak */
 button,
@@ -57,15 +71,54 @@ a {
   scroll-behavior: smooth;
 }
 
-/* radio varian produk biar kelihatan aktif */
+/* radio varian produk biar kelihatan aktif
+   Catatan:
+   Ini jalan kalau struktur HTML radio seperti:
+   <input ... class="hidden" checked />
+   <div data-chip>...</div>
+*/
 [data-varwrap] input[type="radio"]:checked + [data-chip] {
   border-color: #0f172a; /* slate-900 */
 }
 
-/* fallback kalau browser tidak support line-clamp */
-@supports not (-webkit-line-clamp: 2) {
-  .line-clamp-2 {
-    max-height: 2.8em;
-    overflow: hidden;
-  }
+/* =========================
+   ANIMASI ADD TO CART (LEBIH KELIHATAN)
+   ========================= */
+
+/* badge bounce lebih kuat */
+@keyframes badgeBounce {
+  0%   { transform: scale(1) rotate(0deg); }
+  25%  { transform: scale(1.35) rotate(-6deg); }
+  55%  { transform: scale(1.05) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.cart-badge-bounce {
+  animation: badgeBounce 520ms cubic-bezier(.2,1.2,.2,1);
+  transform-origin: center;
+}
+
+/* tombol add pop lebih kuat */
+@keyframes btnPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.10); }
+  70%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.btn-pop {
+  animation: btnPop 320ms cubic-bezier(.2,1.2,.2,1);
+  transform-origin: center;
+}
+
+/* dot terbang: lebih besar + glow */
+.fly-dot {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, #ffffff, #0f172a 55%);
+  box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.18), 0 12px 30px rgba(15, 23, 42, 0.35);
+  z-index: 999999;
+  pointer-events: none;
+  opacity: 1;
+  transform: translate(-50%, -50%);
 }
